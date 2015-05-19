@@ -209,6 +209,78 @@
 #define PIC32_R(a)              (a)
 
 /*--------------------------------------
+* Real-Time Clock Registers
+*/
+#define RTCCON          PIC32_R (0x0C00) /* Control Register */
+#define RTCCONCLR       PIC32_R (0x0C04)
+#define RTCCONSET       PIC32_R (0x0C08)
+#define RTCCONINV       PIC32_R (0x0C0C)
+#define RTCALRM         PIC32_R (0x0C10) /* Alarm Control Register */
+#define RTCALRMCLR      PIC32_R (0x0C14)
+#define RTCALRMSET      PIC32_R (0x0C18)
+#define RTCALRMINV      PIC32_R (0x0C1C)
+#define RTCTIME         PIC32_R (0x0C20) /* Time Value Register */
+#define RTCTIMECLR      PIC32_R (0x0C24)
+#define RTCTIMESET      PIC32_R (0x0C28)
+#define RTCTIMEINV      PIC32_R (0x0C2C)
+#define RTCDATE         PIC32_R (0x0C30) /* Date Value Register */
+#define RTCDATECLR      PIC32_R (0x0C34)
+#define RTCDATESET      PIC32_R (0x0C38)
+#define RTCDATEINV      PIC32_R (0x0C3C)
+#define ALRMTIME        PIC32_R (0x0C40) /* Alarm Time Value Register */
+#define ALRMTIMECLR     PIC32_R (0x0C44)
+#define ALRMTIMESET     PIC32_R (0x0C48)
+#define ALRMTIMEINV     PIC32_R (0x0C4C)
+#define ALRMDATE        PIC32_R (0x0C50) /* Alarm Date Value Register */
+#define ALRMDATECLR     PIC32_R (0x0C54)
+#define ALRMDATESET     PIC32_R (0x0C58)
+#define ALRMDATEINV     PIC32_R (0x0C5C)
+
+/* RTCCON Register */
+#define PIC32_RTCC_OE          0x0001 /* RTCC Output Enable */
+#define PIC32_RTCC_HALFSEC     0x0002 /* Half-Second Status */
+#define PIC32_RTCC_SYNC        0x0004 /* Value Registers Read Synchronization */
+#define PIC32_RTCC_WREN        0x0008 /* Value Registers Write Enable */
+#define PIC32_RTCC_CLKON       0x0040 /* Clock Status: 1 = running, 0 = not running */
+#define PIC32_RTCC_OUTSEL_SEC  0x0080 /* Seconds Clock is presented on the RTCC pin */
+#define PIC32_RTCC_OUTSEL_RTCC 0x0100 /* RTCC Clock is presented on the RTCC pin */
+#define PIC32_RTCC_CLKSEL_SOSC 0x0200 /* External 32.768 kHz Secondary Oscillator (SOSC) */
+#define PIC32_RTCC_SIDL        0x2000 /* Stop in Idle Mode */
+#define PIC32_RTCC_ON          0x8000 /* Enable RTCC module */
+
+/* RTCALRM Register */
+#define PIC32_RTCALRM_ARPT_MASK     0x00FF /* Alarm Repeat Counter Value */
+#define PIC32_RTCALRM_AMASK_SEC     0x0100 /* Every second */
+#define PIC32_RTCALRM_AMASK_10SEC   0x0200 /* Every 10 seconds */
+#define PIC32_RTCALRM_AMASK_MIN     0x0300 /* Every minute */
+#define PIC32_RTCALRM_AMASK_10MIN   0x0400 /* Every 10 minutes */
+#define PIC32_RTCALRM_AMASK_HOUR    0x0500 /* Every hour */
+#define PIC32_RTCALRM_AMASK_DAY     0x0600 /* Once a day */
+#define PIC32_RTCALRM_AMASK_WEEK    0x0700 /* Once a week */
+#define PIC32_RTCALRM_AMASK_MONTH   0x0800 /* Once a month */
+#define PIC32_RTCALRM_AMASK_YEAR    0x0900 /* Once a year */
+#define PIC32_RTCALRM_SYNC          0x1000 /* Alarm Sync bit */
+#define PIC32_RTCALRM_PIV           0x2000 /* Alarm Pulse Initial Value */
+#define PIC32_RTCALRM_CHIME         0x4000 /* Chime Enable */
+#define PIC32_RTCALRM_EN            0x8000 /* Alarm Enable */
+
+/* RTCTIME Register */
+#define PIC32_RTCTIME_SEC           8
+#define PIC32_RTCTIME_MIN           16
+#define PIC32_RTCTIME_HOUR          24
+#define PIC32_RTCTIME_SEC_MASK      0x7F
+#define PIC32_RTCTIME_MIN_MASK      0x7F
+#define PIC32_RTCTIME_HOUR_MASK     0x3F
+
+/* RTCDATE Register */
+#define PIC32_RTCDATE_DAY           8
+#define PIC32_RTCDATE_MONTH         16
+#define PIC32_RTCDATE_YEAR          24
+#define PIC32_RTCDATE_DAY_MASK      0x3F
+#define PIC32_RTCDATE_MONTH_MASK    0x1F
+#define PIC32_RTCDATE_YEAR_MASK     0xFF
+
+/*--------------------------------------
  * Port A-K registers.
  */
 #define ANSELA          PIC32_R (0x60000) /* Port A: analog select */
