@@ -57,12 +57,14 @@ enum {
     BOARD_WIFIRE,           /* chipKIT WiFire board */
     BOARD_MEBII,            /* Microchip MEB-II board */
     BOARD_EXPLORER16,       /* Microchip Explorer-16 board */
+    BOARD_HMZ144,           /* Olimex HMZ144 board */
 };
 
 static const char *board_name[] = {
     "chipKIT WiFire",
     "Microchip MEB-II",
     "Microchip Explorer16",
+    "Olimex HMZ144",
 };
 
 /*
@@ -213,7 +215,10 @@ static void io_reset(pic32_t *s)
     VALUE(RCON)   = 0;
     VALUE(RSWRST) = 0;
     VALUE(OSCTUN) = 0;
-    VALUE(SPLLCON)= 0x01310201;
+    if (s->board_type == BOARD_HMZ144)
+      VALUE(SPLLCON)   = 0x01630201;
+    else
+      VALUE(SPLLCON)= 0x01310201;
     VALUE(PB1DIV) = 0x00008801;
     VALUE(PB2DIV) = 0x00008801;
     VALUE(PB3DIV) = 0x00008801;
@@ -2653,6 +2658,17 @@ static void pic32_init(MachineState *machine, int board_type)
         cs0_port = 1;  cs0_pin = 1;         // select0 at B1,
         cs1_port = 1;  cs1_pin = 2;         // select1 at B2
         break;
+    case BOARD_HMZ144:                      // console on UART2
+        BOOTMEM(DEVCFG0) = 0x7fffffdb;
+        BOOTMEM(DEVCFG1) = 0x0000bec1;
+        BOOTMEM(DEVCFG2) = 0x3ff8e31a;
+        BOOTMEM(DEVCFG3) = 0x86ffffff;
+        VALUE(DEVID)     = 0x55122053;      // MZ2048ECG144 rev A5
+        VALUE(OSCCON)    = 0x00001122;      // external oscillator 12MHz
+        s->sdcard_spi_port = 1;             // SD card at SPI2,
+        cs0_port = 1;  cs0_pin = 14;        // select0 at B14,
+        cs1_port = -1; cs1_pin = -1;        // select1 not available
+        break;
     }
 
     /* UARTs */
@@ -2724,6 +2740,11 @@ static void pic32_init_explorer16(MachineState *machine)
     pic32_init(machine, BOARD_EXPLORER16);
 }
 
+static void pic32_init_hmz144(MachineState *machine)
+{
+    pic32_init(machine, BOARD_HMZ144);
+}
+
 static int pic32_sysbus_device_init(SysBusDevice *sysbusdev)
 {
     return 0;
@@ -2748,7 +2769,7 @@ static void pic32_register_types(void)
     type_register_static(&pic32_device);
 }
 
-static QEMUMachine pic32_board[3] = {
+static QEMUMachine pic32_board[] = {
     {
         .name       = "pic32mz-wifire",
         .desc       = "PIC32MZ microcontroller on chipKIT WiFire board",
@@ -2767,6 +2788,12 @@ static QEMUMachine pic32_board[3] = {
         .init       = pic32_init_explorer16,
         .max_cpus   = 1,
     },
+    {
+        .name       = "pic32mz-hmz144",
+        .desc       = "PIC32MZ microcontroller on Olimex HMZ144 board",
+        .init       = pic32_init_hmz144,
+        .max_cpus   = 1,
+    },
 };
 
 static void pic32_machine_init(void)
@@ -2774,6 +2801,7 @@ static void pic32_machine_init(void)
     qemu_register_machine(&pic32_board[0]);
     qemu_register_machine(&pic32_board[1]);
     qemu_register_machine(&pic32_board[2]);
+    qemu_register_machine(&pic32_board[3]);
 }
 
 type_init(pic32_register_types)
