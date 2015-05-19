@@ -34,6 +34,7 @@
 #include "qemu/error-report.h"
 #include "hw/empty_slot.h"
 #include <termios.h>
+#include <time.h>
 
 #include "pic32mz.h"
 #include "pic32_peripherals.h"
@@ -49,6 +50,9 @@
 #define DATA_MEM_SIZE       (512*1024)          // 512 kbytes
 
 #define TYPE_MIPS_PIC32     "mips-pic32mz"
+
+/* decimal to BCD */
+#define TOBCD(x)    (((x) / 10 * 16) + ((x) % 10))
 
 /*
  * Board variants.
@@ -226,6 +230,22 @@ static void io_reset(pic32_t *s)
     VALUE(PB5DIV) = 0x00008801;
     VALUE(PB7DIV) = 0x00008800;
     VALUE(PB8DIV) = 0x00008801;
+
+    /*
+     * Real-Time Clock and Calendar.
+     */
+    VALUE(RTCCON) = 0;
+    time(&now);
+    cl = gmtime(&now);
+    VALUE(RTCTIME) =
+       TOBCD(cl->tm_sec) << PIC32_RTCTIME_SEC |
+       TOBCD(cl->tm_min) << PIC32_RTCTIME_MIN |
+       TOBCD(cl->tm_hour) << PIC32_RTCTIME_HOUR;
+    VALUE(RTCDATE) =
+       TOBCD(cl->tm_wday) |
+       TOBCD(cl->tm_mday) << PIC32_RTCDATE_DAY |
+       TOBCD(cl->tm_mon + 1) << PIC32_RTCDATE_MONTH |
+       TOBCD(cl->tm_year + 1900 - 2000) << PIC32_RTCDATE_YEAR;
 
     /*
      * General purpose IO signals.
@@ -926,6 +946,13 @@ static unsigned io_read32(pic32_t *s, unsigned offset, const char **namep)
     STORAGE(RPG7R); break;
     STORAGE(RPG8R); break;
     STORAGE(RPG9R); break;
+
+    /*-------------------------------------------------------------------------
+     * Real-Time Clock and Calendar.
+     */
+    STORAGE(RTCCON); break;
+    STORAGE(RTCTIME); break;
+    STORAGE(RTCDATE); break;
 
     /*-------------------------------------------------------------------------
      * General purpose IO signals.
@@ -1916,6 +1943,18 @@ irq:    update_irq_status(s);
     STORAGE(RPF8R);    pps_output_group4(offset, data); break;
     STORAGE(RPF12R);   pps_output_group4(offset, data); break;
     STORAGE(RPG6R);    pps_output_group4(offset, data); break;
+
+    /*-------------------------------------------------------------------------
+     * Real-Time Clock and Calendar.
+     */
+    WRITEOPR(RTCCON, PIC32_RTCC_HALFSEC | PIC32_RTCC_SYNC | PIC32_RTCC_CLKON);
+       if (VALUE(RTCCON) & PIC32_RTCC_ON)
+          VALUE(RTCCON) = write_op(VALUE(RTCCON), PIC32_RTCC_CLKON, RTCCONSET);
+       else
+          VALUE(RTCCON) = write_op(VALUE(RTCCON), PIC32_RTCC_CLKON, RTCCONCLR);
+       return;
+    WRITEOP(RTCTIME); return;
+    WRITEOP(RTCDATE); return;
 
     /*-------------------------------------------------------------------------
      * General purpose IO signals.
